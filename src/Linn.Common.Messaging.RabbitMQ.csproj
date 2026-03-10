@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<Description>Utilities for requesting data from other (proxy) services.</Description>
+		<TargetFramework>net9.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<AssemblyName>Linn.Common.Messaging.RabbitMQ</AssemblyName>
+		<PackageId>Linn.Common.Messaging.RabbitMQ</PackageId>
+		<Version>4.0.0</Version>
+	  <Nullable>enable</Nullable>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="Linn.Common.Configuration" Version="3.0.0" />
+		<PackageReference Include="Linn.Common.Serialization" Version="4.1.0" />
+		<PackageReference Include="RabbitMQ.Client" Version="7.2.1" />
+	</ItemGroup>
+</Project>
