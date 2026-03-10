@@ -1,4 +1,7 @@
 # Changelog
+## [4.0.0] - 2026-03-10
+### *Changes (VERY Breaking)*
+- Upgrade to RabbitMQ.Client to v7, target .net9
 ## [3.2.4] - 2023-12-07
 ### *Changes
 - Extra optional constructor parameter for ChannelConfiguration to allow exchange type and dead letter exchange types to be configurable.
