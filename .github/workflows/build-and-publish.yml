@@ -1,0 +1,42 @@
+name: Build and Publish
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+    
+    - name: Restore dependencies
+      run: dotnet restore src
+    
+    - name: Build
+      run: dotnet build src --configuration Release --no-restore
+    
+    - name: Pack
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      run: dotnet pack src --configuration Release --no-build
+    
+    - name: Publish to NuGet
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      run: |
+        PACKAGE_PATH=$(find src/bin/Release -name "*.nupkg" | head -n 1)
+        if [ -z "$PACKAGE_PATH" ]; then
+          echo "Error: No .nupkg file found in src/bin/Release"
+          exit 1
+        fi
+        dotnet nuget push "$PACKAGE_PATH" \
+          --api-key "${{ secrets.NUGET_API_KEY }}" \
+          --source https://api.nuget.org/v3/index.json \
+          --skip-duplicate
