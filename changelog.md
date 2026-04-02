@@ -1,4 +1,7 @@
 # Changelog
+## [4.0.1] - 2026-04-02
+### *Changes
+- Add optional exchangeType parameter to RabbitChannelConfiguration
 ## [4.0.0] - 2026-03-10
 ### *Changes (VERY Breaking)*
 - Upgrade to RabbitMQ.Client to v7, target .net9
