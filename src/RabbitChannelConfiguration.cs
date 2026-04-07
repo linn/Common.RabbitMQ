@@ -11,7 +11,8 @@ public class RabbitChannelConfiguration(
     string? dlqName = null,
     string? dlxName = null,
     bool createProducerChannel = true,
-    bool createConsumerChannel = true)
+    bool createConsumerChannel = true,
+    string exchangeType = ExchangeType.Direct)
     : IAsyncDisposable
 {
     private readonly string dlqName = string.IsNullOrEmpty(dlqName) ? queueName : dlqName;
@@ -60,7 +61,7 @@ public class RabbitChannelConfiguration(
 
         await setupChannel.ExchangeDeclareAsync(
             this.Exchange,
-            ExchangeType.Direct,
+            exchangeType,
             durableExchange,
             cancellationToken: cancellationToken);
 
