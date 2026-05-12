@@ -1,4 +1,9 @@
 # Changelog
+## [5.0.0] - 2026-05-12
+### *Changes (Breaking)*
+- Target .NET 10
+- Add optional additionalBindings parameter to RabbitChannelConfiguration, allowing a consumer queue to bind to multiple external exchanges with specific routing keys
+- Add ExchangeBinding record type
 ## [4.0.1] - 2026-04-02
 ### *Changes
 - Add optional exchangeType parameter to RabbitChannelConfiguration
