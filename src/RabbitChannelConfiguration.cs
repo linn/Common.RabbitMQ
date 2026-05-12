@@ -12,7 +12,8 @@ public class RabbitChannelConfiguration(
     string? dlxName = null,
     bool createProducerChannel = true,
     bool createConsumerChannel = true,
-    string exchangeType = ExchangeType.Direct)
+    string exchangeType = ExchangeType.Direct,
+    ExchangeBinding[]? additionalBindings = null)
     : IAsyncDisposable
 {
     private readonly string dlqName = string.IsNullOrEmpty(dlqName) ? queueName : dlqName;
@@ -111,6 +112,23 @@ public class RabbitChannelConfiguration(
                     arguments: null,
                     noWait: false,
                     cancellationToken: cancellationToken);
+            }
+
+            if (additionalBindings != null)
+            {
+                foreach (var binding in additionalBindings)
+                {
+                    foreach (var routingKey in binding.RoutingKeys)
+                    {
+                        await setupChannel.QueueBindAsync(
+                            queue: $"{queueName}.q",
+                            exchange: $"{binding.ExchangeName}.x",
+                            routingKey: routingKey,
+                            arguments: null,
+                            noWait: false,
+                            cancellationToken: cancellationToken);
+                    }
+                }
             }
         }
     }
