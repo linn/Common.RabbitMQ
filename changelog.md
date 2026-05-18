@@ -1,4 +1,10 @@
 # Changelog
+
+## [5.1.0] - 2026-05-18
+### *Changes*
+- Add JsonMessageHandler<T> abstract base class for type-safe message consumption with automatic JSON deserialization
+- Add optional JsonSerializerOptions parameter to JsonMessagePublisher<T>
+
 ## [5.0.0] - 2026-05-12
 ### *Changes (Breaking)*
 - Target .NET 10
