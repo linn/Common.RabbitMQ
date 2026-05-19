@@ -1,5 +1,9 @@
 # Changelog
 
+## [5.2.0] - 2026-05-19
+### *Changes*
+- Make JsonMessageHandler<T>.HandleAsync(T, headers, ct) public instead of protected, allowing consuming applications to unit test their handler implementations directly with typed payloads rather than having to construct serialised Message objects
+
 ## [5.1.0] - 2026-05-18
 ### *Changes*
 - Add JsonMessageHandler<T> abstract base class for type-safe message consumption with automatic JSON deserialization

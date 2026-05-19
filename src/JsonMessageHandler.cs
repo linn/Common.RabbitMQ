@@ -14,7 +14,7 @@ public abstract class JsonMessageHandler<T>(JsonSerializerOptions? serializerOpt
         await HandleAsync(payload, message.Headers, cancellationToken);
     }
 
-    protected abstract Task HandleAsync(
+    public abstract Task HandleAsync(
         T payload,
         IReadOnlyDictionary<string, object> headers,
         CancellationToken cancellationToken);
