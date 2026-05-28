@@ -1,4 +1,5 @@
-﻿using RabbitMQ.Client;
+﻿using Microsoft.Extensions.DependencyInjection;
+using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
 namespace Linn.Common.Messaging.RabbitMQ;
@@ -6,19 +7,14 @@ namespace Linn.Common.Messaging.RabbitMQ;
 public class RabbitMessageRouter
 {
     private readonly IChannel channel;
-    private readonly Dictionary<string, IMessageHandler> handlers;
+    private readonly IServiceProvider serviceProvider;
 
     public RabbitMessageRouter(
         IChannel channel,
-        IEnumerable<IMessageHandler> handlers)
+        IServiceProvider serviceProvider)
     {
         this.channel = channel;
-
-        this.handlers = handlers
-            .GroupBy(h => h.RoutingKey)
-            .ToDictionary(
-                g => g.Key,
-                g => g.Single());
+        this.serviceProvider = serviceProvider;
     }
 
     public AsyncEventingBasicConsumer CreateConsumer(
@@ -28,7 +24,11 @@ public class RabbitMessageRouter
 
         consumer.ReceivedAsync += async (_, ea) =>
         {
-            if (!this.handlers.TryGetValue(ea.RoutingKey, out var handler))
+            await using var scope = this.serviceProvider.CreateAsyncScope();
+            var handler = scope.ServiceProvider.GetServices<IMessageHandler>()
+                .FirstOrDefault(h => h.RoutingKey == ea.RoutingKey);
+
+            if (handler == null)
             {
                 Console.WriteLine(
                     $"No handler registered for routing key '{ea.RoutingKey}'");

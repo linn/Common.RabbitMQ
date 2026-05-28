@@ -1,5 +1,11 @@
 # Changelog
 
+## [5.3.0] - 2026-05-28
+### *Changes (Breaking)*
+- RabbitMessageRouter now takes `IServiceProvider` instead of `IEnumerable<IMessageHandler>` and creates a DI scope per received message. This ensures scoped services (e.g. DbContext) are fresh for each message, preventing stale tracked entities from leaking across messages.
+- Consumers must register handlers as Scoped (not Singleton) and pass `IServiceProvider` to the router.
+- Added `Microsoft.Extensions.DependencyInjection.Abstractions` dependency.
+
 ## [5.2.0] - 2026-05-19
 ### *Changes*
 - Make JsonMessageHandler<T>.HandleAsync(T, headers, ct) public instead of protected, allowing consuming applications to unit test their handler implementations directly with typed payloads rather than having to construct serialised Message objects
