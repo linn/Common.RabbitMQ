@@ -1,6 +1,6 @@
 # Changelog
 
-## [5.3.0] - 2026-05-28
+## [6.0.0] - 2026-05-28
 ### *Changes (Breaking)*
 - RabbitMessageRouter now takes `IServiceProvider` instead of `IEnumerable<IMessageHandler>` and creates a DI scope per received message. This ensures scoped services (e.g. DbContext) are fresh for each message, preventing stale tracked entities from leaking across messages.
 - Consumers must register handlers as Scoped (not Singleton) and pass `IServiceProvider` to the router.
