@@ -1,5 +1,10 @@
 # Changelog
 
+## [6.0.1] - 2026-08-25
+### *Bug Fix*
+- Remove `x-dead-letter-routing-key` from main queue arguments. Previously set to `""`, this caused RabbitMQ to overwrite the original routing key on dead-letter, making messages unroutable when requeued from the DLQ back to the original exchange. The original routing key is now preserved automatically.
+- **Deployment note:** Any existing `.q` queue declared with this library must be deleted and recreated for this change to take effect. RabbitMQ will throw 406 PRECONDITION_FAILED if the queue already exists with the old arguments.
+
 ## [6.0.0] - 2026-05-28
 ### *Changes (Breaking)*
 - RabbitMessageRouter now takes `IServiceProvider` instead of `IEnumerable<IMessageHandler>` and creates a DI scope per received message. This ensures scoped services (e.g. DbContext) are fresh for each message, preventing stale tracked entities from leaking across messages.
