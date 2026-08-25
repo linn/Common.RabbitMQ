@@ -91,8 +91,7 @@ public class RabbitChannelConfiguration(
 
             var args = new Dictionary<string, object>
             {
-                { "x-dead-letter-exchange", $"{this.dlxName}.dlx" },
-                { "x-dead-letter-routing-key", string.Empty }
+                { "x-dead-letter-exchange", $"{this.dlxName}.dlx" }
             };
 
             await setupChannel.QueueDeclareAsync(
