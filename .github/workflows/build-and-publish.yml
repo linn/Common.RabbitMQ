@@ -23,6 +23,9 @@ jobs:
     
     - name: Build
       run: dotnet build src --configuration Release --no-restore
+
+    - name: Test
+      run: dotnet test tests/Linn.Common.Messaging.RabbitMQ.Tests --configuration Release
     
     - name: Pack
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'

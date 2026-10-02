@@ -76,10 +76,27 @@ public class RabbitPublisherTests
     [Test]
     public async Task JsonPublisherPassesContentTypeAndPersistence()
     {
-        var p = new JsonMessagePublisher<string>(
-            new RabbitPublisher(this.channel, "ex"), "rk", contentType: "application/json", persistent: true);
+        var p = new JsonMessagePublisher<string>(new RabbitPublisher(this.channel, "ex"), "rk")
+                    {
+                        ContentType = "application/json",
+                        Persistent = true
+                    };
         await p.PublishAsync("x");
         this.captured!.ContentType.Should().Be("application/json");
         this.captured.DeliveryMode.Should().Be(DeliveryModes.Persistent);
+    }
+
+    // Binary compatibility: assemblies compiled against 5.1-6.0 call this exact constructor.
+    [Test]
+    public void JsonPublisherKeepsItsOriginalConstructorSignature()
+    {
+        var ctor = typeof(JsonMessagePublisher<string>).GetConstructor(
+            new[]
+                {
+                    typeof(RabbitPublisher), typeof(string), typeof(IReadOnlyDictionary<string, object>),
+                    typeof(System.Text.Json.JsonSerializerOptions)
+                });
+        ctor.Should().NotBeNull();
+        typeof(JsonMessagePublisher<string>).GetConstructors().Should().HaveCount(1);
     }
 }

@@ -81,7 +81,7 @@ var publisher = new JsonMessagePublisher<OrderDto>(
 await publisher.PublishAsync(new OrderDto { Id = 42, Total = 99.99m });
 ```
 
-`JsonMessagePublisher<T>` serialises `T` to UTF-8 JSON and sends it to the exchange with the configured routing key. Optional `headers`, `JsonSerializerOptions`, `contentType` and `persistent` (sets delivery mode 2) can be supplied to the constructor. `RabbitPublisher` applies `Message.ContentType` and `Message.DeliveryMode` (2 = persistent, 1 = transient) to the published properties.
+`JsonMessagePublisher<T>` serialises `T` to UTF-8 JSON and sends it to the exchange with the configured routing key. Optional `headers` and `JsonSerializerOptions` can be supplied to the constructor; set the `ContentType` and `Persistent` (delivery mode 2) init properties for those message properties, e.g. `new JsonMessagePublisher<OrderDto>(publisher, "order.created") { ContentType = "application/vnd.example+json", Persistent = true }`. `RabbitPublisher` applies `Message.ContentType` and `Message.DeliveryMode` (2 = persistent, 1 = transient) to the published properties.
 
 ---
 
@@ -193,8 +193,11 @@ var config = new RabbitChannelConfiguration(
 | `routingKey` | `string` | — | Routing key for published messages |
 | `headers` | `IReadOnlyDictionary<string, object>?` | `null` | Optional message headers |
 | `serializerOptions` | `JsonSerializerOptions?` | `null` | Custom JSON serialisation options |
-| `contentType` | `string?` | `null` | Content type set on published messages |
-| `persistent` | `bool` | `false` | Publish with delivery mode 2 (persistent) |
+
+| Init property | Type | Default | Description |
+|---|---|---|---|
+| `ContentType` | `string?` | `null` | Content type set on published messages |
+| `Persistent` | `bool` | `false` | Publish with delivery mode 2 (persistent) |
 
 ### `ExchangeBinding`
 
