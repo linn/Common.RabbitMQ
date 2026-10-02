@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.1.0] - 2026-10-02
+### *Bug Fix*
+- RabbitPublisher now sets ContentType and DeliveryMode from Message (previously ignored). DeliveryMode 2 maps to Persistent, 1 to Transient; null leaves the library default.
+### *Changes*
+- JsonMessagePublisher<T> gains `ContentType` and `Persistent` init properties. The constructor signature is unchanged, so this is binary and source compatible.
+- CI now runs the test project.
+
 ## [6.0.1] - 2026-08-25
 ### *Bug Fix*
 - Remove `x-dead-letter-routing-key` from main queue arguments. Previously set to `""`, this caused RabbitMQ to overwrite the original routing key on dead-letter, making messages unroutable when requeued from the DLQ back to the original exchange. The original routing key is now preserved automatically.
