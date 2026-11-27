@@ -73,6 +73,16 @@ public class RabbitPublisherTests
         this.captured!.Headers.Should().ContainKey("a");
     }
 
+    // With publisher confirms the client writes its sequence number into the published headers.
+    [Test]
+    public async Task ShouldNotHandTheCallersHeadersToTheClient()
+    {
+        var headers = new Dictionary<string, object> { ["a"] = "b" };
+        await this.Publish(new Message { RoutingKey = "rk", Headers = headers });
+        ((object?)this.captured!.Headers).Should().NotBeSameAs(headers);
+        this.captured.Headers.Should().ContainKey("a");
+    }
+
     [Test]
     public async Task JsonPublisherPassesContentTypeAndPersistence()
     {

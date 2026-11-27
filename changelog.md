@@ -1,5 +1,19 @@
 # Changelog
 
+## [6.2.0] - 2026-11-27
+### *Changes*
+- RabbitChannelConfiguration gains two opt-in init properties; the constructor signature is unchanged, so this is binary and source compatible, and existing callers behave as before.
+- `RequestedHeartbeat` (`TimeSpan?`, whole seconds from 1 to 65535) sets the heartbeat the client requests (default: the client's 60s; fractions of a second are dropped). The broker agrees the lower of its own and this (unless either side has heartbeats off), and RabbitMQ.Client 7.2.1 closes the connection after three to four intervals with nothing read, so 15s notices a dead connection in 45-60s rather than 3-4 minutes. Checked against a local broker: closed after 45s.
+- `PublisherConfirms` (`bool`) creates the producer channel with publisher confirms and confirmation tracking on, so `RabbitPublisher.PublishAsync` (and `JsonMessagePublisher<T>`) waits for the broker before returning. In RabbitMQ.Client 7.2.1:
+  - ack: the publish returns normally.
+  - nack: it throws `RabbitMQ.Client.Exceptions.PublishException` (`IsReturn` false).
+  - returned message: not relevant, as `RabbitPublisher` publishes with `mandatory: false`, so the broker acks an unroutable message and drops it rather than returning it.
+  - no answer: it waits until the caller's `CancellationToken` cancels (`OperationCanceledException`; the message may still have reached the broker) or the connection closes (`AlreadyClosedException`, which the heartbeat bounds). Pass a token with a timeout.
+  - Confirms are awaited per publish but publishes on the channel are not serialised behind them, and there is no limit on outstanding confirms (passing `CreateChannelOptions` replaces the client's 128 default rate limiter with none).
+  - The client adds an `x-dotnet-pub-seq-no` header to every message published with confirms, which consumers will see in `Message.Headers`.
+### *Bug Fix*
+- RabbitPublisher copies `Message.Headers` into the published properties instead of passing the caller's dictionary, which with confirms on the client would otherwise write its sequence-number header into (changing the caller's dictionary, or throwing for a read-only one).
+
 ## [6.1.0] - 2026-10-02
 ### *Bug Fix*
 - RabbitPublisher now sets ContentType and DeliveryMode from Message (previously ignored). DeliveryMode 2 maps to Persistent, 1 to Transient; null leaves the library default.
