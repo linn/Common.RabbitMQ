@@ -23,7 +23,7 @@ public class RabbitChannelConfiguration(
 
     private readonly TimeSpan? requestedHeartbeat;
 
-    /// <summary>Heartbeat to request from the broker (1 to 65535 seconds, fractions dropped). Default: the client's 60s.</summary>
+    // Heartbeat to request from the broker; null keeps the client's 60s.
     public TimeSpan? RequestedHeartbeat
     {
         get => this.requestedHeartbeat;
@@ -39,7 +39,7 @@ public class RabbitChannelConfiguration(
         }
     }
 
-    /// <summary>Publishes on the producer channel wait for the broker's confirm and throw if it nacks. Default: false.</summary>
+    // Publishes on the producer channel wait for the broker's confirm and throw on a nack.
     public bool PublisherConfirms { get; init; }
 
     public string? Exchange { get; private set; }
