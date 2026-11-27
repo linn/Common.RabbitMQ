@@ -5,9 +5,12 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<AssemblyName>Linn.Common.Messaging.RabbitMQ</AssemblyName>
 		<PackageId>Linn.Common.Messaging.RabbitMQ</PackageId>
-		<Version>6.1.0</Version>
+		<Version>6.2.0</Version>
 	  <Nullable>enable</Nullable>
 	</PropertyGroup>
+	<ItemGroup>
+		<InternalsVisibleTo Include="Linn.Common.Messaging.RabbitMQ.Tests" />
+	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="Linn.Common.Configuration" Version="3.0.0" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0" />

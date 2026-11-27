@@ -8,8 +8,10 @@ public class RabbitPublisher(IChannel channel, string exchange)
     {
         var props = new BasicProperties
         {
-            Headers = message.Headers.Any() 
-                ? (IDictionary<string, object?>?)message.Headers : null
+            // A copy: with publisher confirms the client adds its sequence-number header to this dictionary.
+            Headers = message.Headers.Any()
+                ? message.Headers.ToDictionary(h => h.Key, object? (h) => h.Value)
+                : null
         };
 
         if (message.ContentType != null)

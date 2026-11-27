@@ -3,6 +3,7 @@ using RabbitMQ.Client;
 
 namespace Linn.Common.Messaging.RabbitMQ;
 
+// The constructor signature is unchanged since 5.0 (binary compatibility); newer options are init properties.
 public class RabbitChannelConfiguration(
     string queueName,
     string[] routingKeys,
@@ -20,6 +21,27 @@ public class RabbitChannelConfiguration(
 
     private readonly string dlxName = string.IsNullOrEmpty(dlxName) ? exchangeName : dlxName;
 
+    private readonly TimeSpan? requestedHeartbeat;
+
+    // Heartbeat to request from the broker; null keeps the client's 60s.
+    public TimeSpan? RequestedHeartbeat
+    {
+        get => this.requestedHeartbeat;
+        init
+        {
+            // The client negotiates whole seconds, so anything under a second would turn heartbeats off.
+            if (value is { } v && (v < TimeSpan.FromSeconds(1) || v > TimeSpan.FromSeconds(ushort.MaxValue)))
+            {
+                throw new ArgumentOutOfRangeException(nameof(this.RequestedHeartbeat), v, "Must be between 1 and 65535 seconds.");
+            }
+
+            this.requestedHeartbeat = value;
+        }
+    }
+
+    // Publishes on the producer channel wait for the broker's confirm and throw on a nack.
+    public bool PublisherConfirms { get; init; }
+
     public string? Exchange { get; private set; }
 
     public string QueueName => $"{queueName}.q";
@@ -32,14 +54,8 @@ public class RabbitChannelConfiguration(
 
     public async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
-        var factory = new ConnectionFactory
-        {
-            HostName = ConfigurationManager.Configuration["RABBIT_SERVER"], 
-            UserName = ConfigurationManager.Configuration["RABBIT_USERNAME"],
-            Password = ConfigurationManager.Configuration["RABBIT_PASSWORD"],
-            Port = int.Parse(ConfigurationManager.Configuration["RABBIT_PORT"])
-        };
-                      
+        var factory = this.CreateConnectionFactory();
+
         this.Connection = await factory.CreateConnectionAsync(cancellationToken);
         this.Exchange = $"{exchangeName}.x";
 
@@ -50,7 +66,9 @@ public class RabbitChannelConfiguration(
 
         if (createProducerChannel)
         {
-            this.ProducerChannel = await this.Connection.CreateChannelAsync(null, cancellationToken);
+            this.ProducerChannel = await this.Connection.CreateChannelAsync(
+                this.ProducerChannelOptions(),
+                cancellationToken);
         }
 
         var setupChannel = this.ConsumerChannel ?? this.ProducerChannel;
@@ -89,7 +107,7 @@ public class RabbitChannelConfiguration(
                 noWait: false,
                 cancellationToken: cancellationToken);
 
-            var args = new Dictionary<string, object>
+            var args = new Dictionary<string, object?>
             {
                 { "x-dead-letter-exchange", $"{this.dlxName}.dlx" }
             };
@@ -131,6 +149,32 @@ public class RabbitChannelConfiguration(
             }
         }
     }
+
+    internal ConnectionFactory CreateConnectionFactory()
+    {
+        var factory = new ConnectionFactory
+        {
+            HostName = ConfigurationManager.Configuration["RABBIT_SERVER"]!,
+            UserName = ConfigurationManager.Configuration["RABBIT_USERNAME"]!,
+            Password = ConfigurationManager.Configuration["RABBIT_PASSWORD"]!,
+            Port = int.Parse(ConfigurationManager.Configuration["RABBIT_PORT"]!)
+        };
+
+        if (this.RequestedHeartbeat is { } heartbeat)
+        {
+            factory.RequestedHeartbeat = heartbeat;
+        }
+
+        return factory;
+    }
+
+    // Tracking makes BasicPublishAsync wait for the broker's ack and throw on a nack.
+    internal CreateChannelOptions? ProducerChannelOptions() =>
+        this.PublisherConfirms
+            ? new CreateChannelOptions(
+                publisherConfirmationsEnabled: true,
+                publisherConfirmationTrackingEnabled: true)
+            : null;
 
     public async ValueTask DisposeAsync()
     {

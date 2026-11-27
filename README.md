@@ -81,6 +81,21 @@ var publisher = new JsonMessagePublisher<OrderDto>(
 await publisher.PublishAsync(new OrderDto { Id = 42, Total = 99.99m });
 ```
 
+To make a publish wait for the broker to confirm it, and to notice a dead connection sooner, set the init properties on the configuration and pass a cancellation token with a timeout:
+
+```csharp
+await using var config = new RabbitChannelConfiguration("orders", ["order.created"], "orders", createConsumerChannel: false)
+{
+    RequestedHeartbeat = TimeSpan.FromSeconds(15),
+    PublisherConfirms = true
+};
+
+using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+await publisher.PublishAsync(order, cts.Token);   // throws PublishException on a nack, OperationCanceledException on timeout
+```
+
+See the 6.2.0 changelog entry for exactly what happens on ack, nack and timeout.
+
 `JsonMessagePublisher<T>` serialises `T` to UTF-8 JSON and sends it to the exchange with the configured routing key. Optional `headers` and `JsonSerializerOptions` can be supplied to the constructor; set the `ContentType` and `Persistent` (delivery mode 2) init properties for those message properties, e.g. `new JsonMessagePublisher<OrderDto>(publisher, "order.created") { ContentType = "application/vnd.example+json", Persistent = true }`. `RabbitPublisher` applies `Message.ContentType` and `Message.DeliveryMode` (2 = persistent, 1 = transient) to the published properties.
 
 ---
@@ -184,6 +199,11 @@ var config = new RabbitChannelConfiguration(
 | `createConsumerChannel` | `bool` | `true` | Create a channel for consuming and declare queue topology |
 | `exchangeType` | `string` | `direct` | RabbitMQ exchange type (`direct`, `topic`, `fanout`, `headers`) |
 | `additionalBindings` | `ExchangeBinding[]?` | `null` | Extra exchange→queue bindings |
+
+| Init property | Type | Default | Description |
+|---|---|---|---|
+| `RequestedHeartbeat` | `TimeSpan?` | `null` (client's 60s) | Heartbeat to request, 1 to 65535 whole seconds; a dead connection is noticed after three to four intervals |
+| `PublisherConfirms` | `bool` | `false` | Producer channel waits for the broker's confirm on each publish; a nack throws `PublishException` |
 
 ### `JsonMessagePublisher<T>`
 
